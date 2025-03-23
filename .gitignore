@@ -1,0 +1,16 @@
+# Fichiers Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+
+# Fichiers sensibles
+.env
+*.pem
+*.key
+
+# Fichiers d'environnement
+**/.env
+**/node_modules
+*.csv
