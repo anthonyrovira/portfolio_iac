@@ -1,8 +1,8 @@
 resource "aws_s3_bucket" "frontend" {
-  bucket = "portfolio-frontend"
+  bucket = "anthonyrovira-frontend"
 
   tags = {
-    Name = "portfolio-frontend"
+    Name = "portfolio_frontend"
   }
 }
 
@@ -42,7 +42,6 @@ resource "aws_s3_bucket_versioning" "versioning_frontend" {
 resource "aws_cloudfront_distribution" "frontend" {
   origin {
     domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_access_control_id = aws_cloudfront_origin_access_control.default.id
     origin_id   = "S3-${aws_s3_bucket.frontend.bucket}"
 
     s3_origin_config {
@@ -56,8 +55,8 @@ resource "aws_cloudfront_distribution" "frontend" {
   aliases = ["anthonyrovira.com"]
 
   default_cache_behavior {
-    allowed_methods  = ["GET", "POST", "HEAD"]
-    cached_methods   = ["GET", "POST", "HEAD"]
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
     target_origin_id = "S3-${aws_s3_bucket.frontend.bucket}"
 
     forwarded_values {
@@ -86,7 +85,10 @@ resource "aws_cloudfront_distribution" "frontend" {
     Environment = "production"
   }
 
-  viewer_certificate {
-    cloudfront_default_certificate = true
-  }
+viewer_certificate {
+  acm_certificate_arn      = data.aws_acm_certificate.issued.arn
+#   cloudfront_default_certificate = true
+  ssl_support_method       = "sni-only" 
+  minimum_protocol_version = "TLSv1.2_2021"
+}
 }
