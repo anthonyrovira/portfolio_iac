@@ -20,7 +20,7 @@ sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 sudo usermod -aG docker ubuntu
 
 # Connect to the ECR repository
-AWS_ACCOUNT_ID="<AWS_ACCOUNT_ID>"
+AWS_ACCOUNT_ID="717119779577"
 REGION="eu-west-3"
 IMAGE_NAME="portfolio-backend"
 
