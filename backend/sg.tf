@@ -1,5 +1,6 @@
 resource "aws_security_group" "backend_sg" {
-  name_prefix = "backend-"
+   name        = "portfolio-backend-sg"
+  description = "Allow inbound traffic on port 3000 and 22, and all outbound traffic"
 
   ingress {
     from_port   = 3000
