@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # System update
-sudo apt update && apt upgrade -y
+sudo apt update && sudo apt upgrade -y
 
 # Install required packages
 sudo apt install -y \
