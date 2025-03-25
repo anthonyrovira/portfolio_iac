@@ -1,6 +1,11 @@
-output "ec2_public_ip" {
-  description = "EC2 Backend Instance Public IP"
-  value       = module.backend.ec2_public_ip 
+output "ec2_public_dns" {
+  description = "EC2 Backend Instance Public DNS"
+  value       = module.backend.ec2_public_dns
+}
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository"
+  value       = module.backend.ecr_repository_url
 }
 
 output "frontend_url" {

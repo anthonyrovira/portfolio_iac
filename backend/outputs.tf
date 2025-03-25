@@ -1,6 +1,6 @@
-output "ec2_public_ip" {
+output "ec2_public_dns" {
   description = "EC2 Backend Instance Public IP"
-  value       = aws_instance.backend.public_ip
+  value       = aws_instance.backend.public_dns
 } 
 
 output "ecr_repository_url" {
