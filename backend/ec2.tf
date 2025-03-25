@@ -6,7 +6,6 @@ resource "aws_instance" "backend" {
   iam_instance_profile = aws_iam_instance_profile.ec2_backend.name
 
   user_data = file("${path.module}/user-data.sh")
-  user_data_replace_on_change = true
 
   tags = {
     Name = "portfolio-backend"
