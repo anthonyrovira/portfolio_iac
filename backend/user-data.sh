@@ -4,11 +4,12 @@
 sudo apt update && sudo apt upgrade -y
 
 # Install required packages
-sudo apt install docker.io -y
-sudo apt install awscli -y
-sudo apt install curl -y
-sudo apt install wget -y
-sudo apt install git -y
+sudo apt install -y \
+    awscli \
+    docker.io \
+    curl \
+    wget \
+    git
 
 # Start and enable Docker
 sudo systemctl start docker
