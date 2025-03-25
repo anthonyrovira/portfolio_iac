@@ -3,21 +3,29 @@
 # System update
 sudo apt update && apt upgrade -y
 
-# Install AWS CLI
-sudo apt install -y awscli
+# Install required packages
+sudo apt install -y \
+    awscli \
+    docker.io \
+    curl \
+    wget \
+    git
 
-# Install Docker
-sudo apt install -y docker.io
-systemctl start docker
-systemctl enable docker
+# Start and enable Docker
+sudo systemctl start docker
+sudo systemctl enable docker
 
 # Install Docker Compose (v2)
 sudo mkdir -p /usr/local/lib/docker/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo curl -SL https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
 # Add the user to the docker group
 sudo usermod -aG docker ubuntu
+
+# Create directory for the application
+sudo mkdir -p /home/ubuntu/app
+sudo chown -R ubuntu:ubuntu /home/ubuntu/app
 
 # Connect to the ECR repository
 AWS_ACCOUNT_ID="717119779577"
@@ -26,16 +34,46 @@ IMAGE_NAME="portfolio-backend"
 
 sudo aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
-IMAGE_TAG="latest"
-ECR_IMAGE="$AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG"
+# Create .env file with placeholder (will be updated by GitHub Actions)
+sudo touch /home/ubuntu/.env
+sudo chown ubuntu:ubuntu /home/ubuntu/.env
 
-sudo docker stop backend || true
-sudo docker rm backend || true
+# Create docker-compose.yml with placeholder (will be updated by GitHub Actions)
+sudo touch /home/ubuntu/docker-compose.yml
+sudo chown ubuntu:ubuntu /home/ubuntu/docker-compose.yml
 
-sudo docker pull $ECR_IMAGE
+# Set proper permissions for SSH key (if needed for GitHub Actions)
+sudo mkdir -p /home/ubuntu/.ssh
+sudo chmod 700 /home/ubuntu/.ssh
+sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh
 
-sudo docker run -d \
-  --name backend \
-  -p 3000:3000 \
-  --env-file /home/ubuntu/.env \
-  $ECR_IMAGE
+# # Install healthcheck dependencies
+# sudo apt install -y wget
+
+# # Create a basic healthcheck script
+# sudo tee /usr/local/bin/healthcheck.sh << 'EOF'
+# #!/bin/bash
+# wget --spider http://localhost:3000/health
+# EOF
+# sudo chmod +x /usr/local/bin/healthcheck.sh
+
+# # Create systemd service for healthcheck
+# sudo tee /etc/systemd/system/healthcheck.service << 'EOF'
+# [Unit]
+# Description=Portfolio Backend Healthcheck
+# After=docker.service
+
+# [Service]
+# Type=simple
+# User=ubuntu
+# ExecStart=/usr/local/bin/healthcheck.sh
+# Restart=always
+# RestartSec=30
+
+# [Install]
+# WantedBy=multi-user.target
+# EOF
+
+# # Enable and start healthcheck service
+# sudo systemctl enable healthcheck.service
+# sudo systemctl start healthcheck.service
