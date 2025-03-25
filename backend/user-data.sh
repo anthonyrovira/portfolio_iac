@@ -31,13 +31,14 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 # Configure ECR helper
 echo "--> Configuring ECR credentials..."
-mkdir -p ~/.docker
+sudo mkdir -p ~/.docker
 echo '{"credsStore": "ecr-login"}' > ~/.docker/config.json
 sudo chown -R ubuntu:ubuntu ~/.docker
 
 # Start Docker service
 echo "--> Starting Docker..."
-sudo systemctl enable --now docker
+sudo systemctl start docker
+sudo systemctl enable docker
 sudo usermod -aG docker ubuntu
 
 # ----------------------------
@@ -52,8 +53,7 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu/app
 # ----------------------------
 echo "==> Logging into ECR..."
 
-sudo aws ecr get-login-password --region "$region" | \
-    sudo docker login --username AWS --password-stdin "$ecr_registry"
+sudo aws ecr get-login-password --region $region | sudo docker login --username AWS --password-stdin $ecr_registry
 
 # ----------------------------
 # 5. COMPLETION
