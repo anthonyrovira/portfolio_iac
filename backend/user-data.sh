@@ -25,10 +25,6 @@ sudo usermod -aG docker ubuntu
 sudo mkdir -p /home/ubuntu/app
 sudo chown -R ubuntu:ubuntu /home/ubuntu/app
 
-# Connect to the ECR repository
-AWS_ACCOUNT_ID="717119779577"
-REGION="eu-west-3"
-
-sudo aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+sudo aws ecr get-login-password --region ${region} | sudo docker login --username AWS --password-stdin ${ecr_registry}
 
 echo "User data script completed successfully" > /var/log/user-data.log
