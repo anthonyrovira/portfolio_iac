@@ -16,9 +16,11 @@ sudo systemctl start docker
 sudo systemctl enable docker
 
 # Install Docker Compose (v2)
-sudo mkdir -p /usr/local/lib/docker/cli-plugins
-sudo curl -SL https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
-sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Create symbolic link for docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 # Add the user to the docker group
 sudo usermod -aG docker ubuntu
@@ -77,3 +79,6 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh
 # # Enable and start healthcheck service
 # sudo systemctl enable healthcheck.service
 # sudo systemctl start healthcheck.service
+
+# Log the completion of the script
+echo "User data script completed successfully" > /var/log/user-data.log
