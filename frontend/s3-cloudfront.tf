@@ -39,15 +39,20 @@ resource "aws_s3_bucket_versioning" "versioning_frontend" {
   }
 }
 
+resource "aws_cloudfront_origin_access_control" "frontend" {
+  name                              = "frontend-oac"
+  description                       = "OAC for CloudFront to access S3"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+
 resource "aws_cloudfront_distribution" "frontend" {
   origin {
-    domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_access_control_id = aws_cloudfront_origin_access_identity.frontend.id
-    origin_id   = "S3-${aws_s3_bucket.frontend.bucket}"
-
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.frontend.cloudfront_access_identity_path
-    }
+    domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
+    origin_id                = "S3-${aws_s3_bucket.frontend.bucket}"
   }
 
   enabled             = true
@@ -86,10 +91,9 @@ resource "aws_cloudfront_distribution" "frontend" {
     Environment = "production"
   }
 
-viewer_certificate {
-  acm_certificate_arn      = data.aws_acm_certificate.issued.arn
-#   cloudfront_default_certificate = true
-  ssl_support_method       = "sni-only" 
-  minimum_protocol_version = "TLSv1.2_2021"
-}
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate.frontend.arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
 }

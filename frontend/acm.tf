@@ -1,14 +1,11 @@
-# Find a certificate that is issued
-data "aws_acm_certificate" "issued" {
-  domain   = "anthonyrovira.com"
-  statuses = ["ISSUED"]
+resource "aws_acm_certificate" "frontend" {
+  domain_name       = "anthonyrovira.com"
+  subject_alternative_names = ["www.anthonyrovira.com"]
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
   provider = aws.us-east-1
 }
-
-# Find a certificate issued by (not imported into) ACM
-# data "aws_acm_certificate" "amazon_issued" {
-#   domain      = "anthonyrovira.com"
-#   types       = ["AMAZON_ISSUED"]
-#   most_recent = true
-#   provider = aws.us-east-1
-# }

@@ -3,16 +3,22 @@ resource "aws_cloudfront_origin_access_identity" "frontend" {
 }
 
 data "aws_iam_policy_document" "s3_policy" {
-  # Cloudfront autorisations
+  # Cloudfront autorisations with OAC
   statement {
-    effect    = "Allow"
-    sid = "CloudFrontReadAccess"
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.frontend.arn}/*"]
+    sid    = "CloudFrontOACAccess"
+    effect = "Allow"
+    actions = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.frontend.arn}", "${aws_s3_bucket.frontend.arn}/*"]
 
     principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.frontend.iam_arn]
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.frontend.arn]
     }
   }
 
