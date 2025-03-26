@@ -5,6 +5,7 @@ resource "aws_cloudfront_origin_access_identity" "frontend" {
 data "aws_iam_policy_document" "s3_policy" {
   # Cloudfront autorisations
   statement {
+    effect    = "Allow"
     sid = "CloudFrontReadAccess"
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.frontend.arn}/*"]

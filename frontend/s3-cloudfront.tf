@@ -42,6 +42,7 @@ resource "aws_s3_bucket_versioning" "versioning_frontend" {
 resource "aws_cloudfront_distribution" "frontend" {
   origin {
     domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_identity.frontend.id
     origin_id   = "S3-${aws_s3_bucket.frontend.bucket}"
 
     s3_origin_config {
@@ -52,7 +53,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
 
-  aliases = ["anthonyrovira.com"]
+  aliases = ["anthonyrovira.com", "www.anthonyrovira.com"]
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
