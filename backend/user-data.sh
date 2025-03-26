@@ -1,63 +1,44 @@
 #!/bin/bash
-# User Data Script - Portfolio Backend Deployment
-# Version: 1.0
-# Description: Configures EC2 instance for Docker/ECR deployment
 
-# ----------------------------
-# 1. SYSTEM SETUP
-# ----------------------------
-echo "==> Starting system update..."
+# System update
 sudo apt update && sudo apt upgrade -y
 
-echo "==> Installing base packages..."
+# Install required packages
 sudo apt install -y \
     awscli \
     docker.io \
     curl \
     wget \
-    git \
-    amazon-ecr-credential-helper
+    git
 
-# ----------------------------
-# 2. DOCKER CONFIGURATION
-# ----------------------------
-echo "==> Setting up Docker..."
 
-# Install Docker Compose v2
-echo "--> Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" \
-    -o /usr/local/bin/docker-compose
+# Install Amazon ECR Credential Helper
+sudo apt install -y amazon-ecr-credential-helper
+sudo systemctl restart packagekit.service
+
+# Install Docker Compose (v2)
+sudo curl -L https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# Configure ECR helper
-echo "--> Configuring ECR credentials..."
-sudo mkdir -p ~/.docker
-echo '{"credsStore": "ecr-login"}' > ~/.docker/config.json
-sudo chown -R ubuntu:ubuntu ~/.docker
+# Configure Docker to use the Amazon ECR Credential Helper
+sudo mkdir -p /home/ubuntu/.docker
+echo '{"credsStore": "ecr-login"}' | sudo tee /home/ubuntu/.docker/config.json
+sudo chown -R ubuntu:ubuntu /home/ubuntu/.docker
 
-# Start Docker service
-echo "--> Starting Docker..."
-sudo systemctl start docker
+# Start and enable Docker
+sudo systemctl restart docker
 sudo systemctl enable docker
+
+# Add the user to the docker group
 sudo usermod -aG docker ubuntu
 
-# ----------------------------
-# 3. APPLICATION SETUP
-# ----------------------------
-echo "==> Preparing application environment..."
+# Create directory for the application
 sudo mkdir -p /home/ubuntu/app
 sudo chown -R ubuntu:ubuntu /home/ubuntu/app
 
-# ----------------------------
-# 4. ECR LOGIN
-# ----------------------------
-echo "==> Logging into ECR..."
+# Login to Amazon ECR
+sudo aws ecr get-login-password --region "${region}" | sudo docker login --username AWS --password-stdin "${ecr_registry}"
 
-sudo aws ecr get-login-password --region $region | sudo docker login --username AWS --password-stdin $ecr_registry
-
-# ----------------------------
-# 5. COMPLETION
-# ----------------------------
 echo "==> Script completed successfully!"
 echo "User data script completed at $(date)" > /var/log/user-data.log
 
