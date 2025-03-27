@@ -6,10 +6,7 @@ resource "aws_instance" "backend" {
   vpc_security_group_ids = [aws_security_group.backend_sg.id]
   iam_instance_profile = aws_iam_instance_profile.ec2_backend.name
 
-  user_data = templatefile("${path.module}/user-data.sh", {
-    ecr_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com",
-    region       = var.aws_region
-  })
+  user_data = file("${path.module}/user-data.sh")   
 
   tags = {
     Name = "portfolio-backend"

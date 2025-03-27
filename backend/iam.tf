@@ -23,7 +23,7 @@ resource "aws_iam_instance_profile" "ec2_backend" {
   role = aws_iam_role.ec2_backend.name
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_backend" {
+resource "aws_iam_role_policy_attachment" "s3_access" {
   role       = aws_iam_role.ec2_backend.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" 
 }
