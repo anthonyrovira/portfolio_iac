@@ -1,14 +1,14 @@
-output "ec2_public_dns" {
-  description = "EC2 Backend Instance Public DNS"
-  value       = module.backend.ec2_public_dns
-}
-
 output "frontend_url" {
-  description = "Production URL of the frontend"
-  value       = module.frontend.frontend_url 
+  description = "Production Frontend URL (Cloudflare CDN)"
+  value       = "https://${var.domain}"
 }
 
-output "s3_bucket_arn" {
-  description = "ARN of the S3 bucket"
-  value       = module.frontend.s3_bucket_arn
+# output "s3_bucket_name" {
+#   description = "Frontend S3 bucket name for CI/CD sync"
+#   value       = aws_s3_bucket.frontend.bucket
+# }
+
+output "ec2_instance_id" {
+  description = "Backend EC2 instance public ip"
+  value       = "https://${aws_instance.backend.public_ip}"
 }

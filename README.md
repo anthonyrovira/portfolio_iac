@@ -23,7 +23,7 @@ This repository contains the Terraform configuration for the infrastructure of m
 
 - **S3 Bucket**:
 
-  - Name: `anthonyrovira-frontend`
+  - Name: `anthonyrovira.com`
   - Private access with CloudFront OAI
   - Website hosting enabled
   - Versioning enabled

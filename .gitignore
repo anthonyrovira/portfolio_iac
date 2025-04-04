@@ -6,7 +6,7 @@
 *.tfplan
 
 # Fichiers sensibles
-.env
+.env**
 *.pem
 *.key
 
@@ -16,3 +16,6 @@
 *.csv
 *.hcl
 tfplan
+*.tfvars
+*.tfvars.json
+.aws/
