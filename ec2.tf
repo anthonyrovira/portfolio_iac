@@ -6,6 +6,11 @@ resource "aws_instance" "backend" {
   security_groups      = [aws_security_group.backend_sg.id]
   subnet_id            = aws_subnet.public.id
 
+  provisioner "file" {
+    source      = "docker-compose.yml"
+    destination = "/tmp/docker-compose.yml"
+  }
+
   user_data_replace_on_change = true
   user_data = templatefile("${path.module}/user-data.sh", {
     ssm_username_param           = aws_ssm_parameter.dockerhub_username.name,

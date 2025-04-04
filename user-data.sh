@@ -58,56 +58,15 @@ ALLOWED_ORIGIN=$(aws ssm get-parameter --name "${allowed_origin}" --with-decrypt
 EOF
 sudo chmod 600 /home/ubuntu/app/.env
 
-# Configure watchtower
-echo "--> Configuring Watchtower..."    
-docker run -d \
-  --name watchtower \
-  -e REPO_USER=$DOCKERHUB_USERNAME -e REPO_PASS=$DOCKERHUB_PASSWORD \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -e WATCHTOWER_LABEL_ENABLE=true \
-  -e WATCHTOWER_SCOPE=traefik_network \
-  containrrr/watchtower \
-  --interval 60 \
-  --cleanup \
-  --include-stopped \
-  --debug \
-  portfolio-backend
+# Copie du docker-compose.yml depuis Terraform
+echo "--> Deploying Docker Compose configuration"
+mkdir -p /opt/docker
+mv /tmp/docker-compose.yml /opt/docker/docker-compose.yml
 
-# Create a dedicated network
-echo "--> Creating a dedicated network..."
-docker network create traefik_network
-
-# Configure Backend app
-echo "--> Configuring Backend app..."
-docker run -d \
-  --name traefik \
-  --network traefik_network \
-  -p 80:80 \
-  -p 443:443 \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  -v /opt/traefik/letsencrypt:/letsencrypt \
-  traefik:v3.3 \
-  --providers.docker=true \
-  --entrypoints.web.address=:80 \
-  --entrypoints.websecure.address=:443 \
-  --entrypoints.web.http.redirections.entrypoint.to=websecure \
-  --entrypoints.web.http.redirections.entrypoint.scheme=https \
-  --certificatesresolvers.myresolver.acme.email=anthonyrov@gmail.com \
-  --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json \
-  --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web \
-  --certificatesresolvers.myresolver.acme.keytype=EC256
-
-docker run -d \
-  --name portfolio-backend \
-  --network traefik_network \
-  -l traefik.enable=true \
-  -l "traefik.http.routers.backend.rule=Host(\`api.anthonyrovira.com\`)" \
-  -l traefik.http.routers.backend.entrypoints=websecure \
-  -l traefik.http.routers.backend.tls.certresolver=myresolver \
-  -l traefik.http.services.backend.loadbalancer.server.port=3000 \
-  --env-file /home/ubuntu/app/.env \
-  -e NODE_ENV=production \
-  hysteria9/portfolio-backend:latest
+# Démarrage des services
+echo "--> Starting services with Docker Compose"
+cd /opt/docker
+docker-compose up -d
 
 echo "==> Script completed successfully!"
 echo "User data script completed at $(date)" > /var/log/user-data.log

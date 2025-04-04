@@ -1,0 +1,60 @@
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    command:
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.myresolver.acme.email=anthonyrov@gmail.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.keytype=EC256
+      - --log.level=DEBUG
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certs:/letsencrypt
+    networks:
+      - traefik_network
+
+  portfolio-backend:
+    image: hysteria9/portfolio-backend:latest
+    container_name: portfolio-backend
+    env_file:
+      - /home/ubuntu/app/.env
+    environment:
+      - NODE_ENV=production
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend.rule=Host(`api.anthonyrovira.com`)
+      - traefik.http.routers.backend.entrypoints=websecure
+      - traefik.http.routers.backend.tls.certresolver=myresolver
+      - traefik.http.services.backend.loadbalancer.server.port=3000
+    networks:
+      - traefik_network
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/root/.docker/config.json
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=60
+      - WATCHTOWER_LABEL_ENABLE=true
+    command: --scope traefik_network --cleanup --include-stopped --debug
+    networks:
+      - traefik_network
+
+volumes:
+  traefik-certs:
+
+networks:
+  traefik_network:
+    driver: bridge
