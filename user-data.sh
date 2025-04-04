@@ -58,12 +58,12 @@ ALLOWED_ORIGIN=$(aws ssm get-parameter --name "${allowed_origin}" --with-decrypt
 EOF
 sudo chmod 600 /home/ubuntu/app/.env
 
-# Copie du docker-compose.yml depuis Terraform
+# Copy docker-compose.yml to ec2
 echo "--> Deploying Docker Compose configuration"
 mkdir -p /opt/docker
 mv /tmp/docker-compose.yml /opt/docker/docker-compose.yml
 
-# Démarrage des services
+# Service launch
 echo "--> Starting services with Docker Compose"
 cd /opt/docker
 docker-compose up -d

@@ -11,6 +11,13 @@ resource "aws_instance" "backend" {
     destination = "/tmp/docker-compose.yml"
   }
 
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ubuntu"
+    private_key = file("backend-key.pem")
+  }
+
   user_data_replace_on_change = true
   user_data = templatefile("${path.module}/user-data.sh", {
     ssm_username_param           = aws_ssm_parameter.dockerhub_username.name,
