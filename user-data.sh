@@ -11,20 +11,20 @@ sudo apt install -y \
     docker.io \
     wget 
 
+# Create directory for the application
+echo "==> Setting up requiered directories..."
+mkdir -p /opt/traefik/letsencrypt
+sudo chown -R 1000:1000 /opt/traefik/letsencrypt
+sudo chmod 600 /opt/traefik/letsencrypt/acme.json
+
+mkdir -p /home/ubuntu/app
+sudo chown -R ubuntu:ubuntu /home/ubuntu/app
+
 # Install Docker Compose v2
 echo "--> Installing Docker Compose..."
 sudo curl -L "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" \
     -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
-
-# Create directory for the application
-echo "==> Setting up requiered directories..."
-mkdir -p /opt/traefik/letsencrypt
-sudo chown -R 1000:1000 /opt/traefik/letsencrypt
-sudo chmod 755 /opt/traefik
-
-mkdir -p /home/ubuntu/app
-sudo chown -R ubuntu:ubuntu /home/ubuntu/app
 
 # Starting docker
 echo "--> Starting Docker..."
@@ -72,7 +72,7 @@ echo "==> Script completed successfully!"
 echo "User data script completed at $(date)" > /var/log/user-data.log
 
 # sudo tail -f /var/log/cloud-init-output.log
-# journalctl -u pm2-ubuntu.service -n 100 --no-pager
 # dig api.anthonyrovira.com +short
 # docker exec traefik cat /letsencrypt/acme.json
 # curl -vk https://api.anthonyrovira.com
+# sudo docker logs traefik

@@ -1,5 +1,5 @@
 output "frontend_url" {
-  description = "Production Frontend URL (Cloudflare CDN)"
+  description = "Production Frontend URL"
   value       = "https://${var.domain}"
 }
 

@@ -3,28 +3,32 @@ services:
     image: traefik:v3.3
     container_name: traefik
     command:
+      - --api.insecure=true
       - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # - --certificatesresolvers.myresolver.acme.tlschallenge=true
       - --certificatesresolvers.myresolver.acme.email=anthonyrov@gmail.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.myresolver.acme.keytype=EC256
       - --log.level=DEBUG
+      - --certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-certs:/letsencrypt
+      - /opt/traefik/letsencrypt:/letsencrypt
     networks:
       - traefik_network
 
   portfolio-backend:
     image: hysteria9/portfolio-backend:latest
     container_name: portfolio-backend
+    pull_policy: always
     env_file:
       - /home/ubuntu/app/.env
     environment:
@@ -35,6 +39,8 @@ services:
       - traefik.http.routers.backend.entrypoints=websecure
       - traefik.http.routers.backend.tls.certresolver=myresolver
       - traefik.http.services.backend.loadbalancer.server.port=3000
+      - com.centurylinklabs.watchtower.scope=traefik_network
+      - com.centurylinklabs.watchtower.enable=true
     networks:
       - traefik_network
     restart: unless-stopped
@@ -44,16 +50,14 @@ services:
     container_name: watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /root/.docker/config.json:/root/.docker/config.json
+      - /root/.docker/config.json:/config.json
     environment:
       - WATCHTOWER_POLL_INTERVAL=60
       - WATCHTOWER_LABEL_ENABLE=true
-    command: --scope traefik_network --cleanup --include-stopped --debug
+      - WATCHTOWER_REGISTRY_AUTH_FILE=/config.json
+    command: --scope traefik_network --cleanup --revive-stopped --debug
     networks:
       - traefik_network
-
-volumes:
-  traefik-certs:
 
 networks:
   traefik_network:
