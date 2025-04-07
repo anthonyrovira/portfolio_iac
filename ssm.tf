@@ -28,6 +28,12 @@ resource "aws_ssm_parameter" "backend_secrets" {
     resend_api_key    = var.resend_api_key
     resend_from_email = var.resend_from_email
     allowed_origin    = var.allowed_origin
+
+    gf_security_admin_user     = var.gf_security_admin_user
+    gf_security_admin_password = var.gf_security_admin_password
+
+    aws_access_key_id     = var.aws_access_key_id
+    aws_secret_access_key = var.aws_secret_access_key
   }
 
   name        = "/portfolio/${each.key}"

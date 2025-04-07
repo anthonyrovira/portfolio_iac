@@ -28,13 +28,25 @@ resource "aws_route53_record" "www" {
 
 # API
 resource "aws_route53_record" "api" {
-  zone_id    = data.aws_route53_zone.main.zone_id
-  name       = "api.${var.domain}"
-  type       = "A"
-  ttl        = "300"
-  records    = [aws_instance.backend.public_ip]
-  depends_on = [aws_instance.backend]
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "api"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.backend.domain_name
+    zone_id                = aws_cloudfront_distribution.backend.hosted_zone_id
+    evaluate_target_health = true
+  }
+}
 
+resource "aws_route53_record" "grafana_api" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "grafana.api"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.backend.domain_name
+    zone_id                = aws_cloudfront_distribution.backend.hosted_zone_id
+    evaluate_target_health = false
+  }
 }
 
 resource "aws_route53_health_check" "api" {
@@ -42,8 +54,8 @@ resource "aws_route53_health_check" "api" {
   port              = 443
   type              = "HTTPS"
   resource_path     = "/health"
-  failure_threshold = "5"
-  request_interval  = "30"
+  failure_threshold = "3"
+  request_interval  = "3600"
 
   tags = {
     Name = "api-health-check"

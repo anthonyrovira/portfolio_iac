@@ -45,6 +45,18 @@ variable "dockerhub_password" {
   sensitive   = true
 }
 
+variable "gf_security_admin_user" {
+  description = "Grafana username"
+  type        = string
+  sensitive   = true
+}
+
+variable "gf_security_admin_password" {
+  description = "Grafana password"
+  type        = string
+  sensitive   = true
+}
+
 variable "upstash_redis_rest_url" {
   description = "Upstash Redis REST URL"
   type        = string
@@ -56,7 +68,6 @@ variable "upstash_redis_rest_token" {
   type        = string
   sensitive   = true
 }
-
 
 variable "firebase_api_key" {
   description = "Firebase API key"
@@ -112,6 +123,18 @@ variable "firebase_measurement_id" {
 
 variable "allowed_origin" {
   description = "Allowed origin"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_access_key_id" {
+  description = "AWS access key ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret access key"
   type        = string
   sensitive   = true
 }

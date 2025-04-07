@@ -48,7 +48,11 @@ resource "aws_iam_role_policy" "ssm_read_access" {
           aws_ssm_parameter.backend_secrets["firebase_measurement_id"].arn,
           aws_ssm_parameter.backend_secrets["resend_api_key"].arn,
           aws_ssm_parameter.backend_secrets["resend_from_email"].arn,
-          aws_ssm_parameter.backend_secrets["allowed_origin"].arn
+          aws_ssm_parameter.backend_secrets["allowed_origin"].arn,
+          aws_ssm_parameter.backend_secrets["gf_security_admin_user"].arn,
+          aws_ssm_parameter.backend_secrets["gf_security_admin_password"].arn,
+          aws_ssm_parameter.backend_secrets["aws_access_key_id"].arn,
+          aws_ssm_parameter.backend_secrets["aws_secret_access_key"].arn
         ]
       }
     ]
@@ -56,40 +60,6 @@ resource "aws_iam_role_policy" "ssm_read_access" {
 }
 
 # Bucket S3 and Cloudfront Role & Permissions
-
-# S3 Policy for CloudFront
-# data "aws_iam_policy_document" "s3_policy" {
-#   statement {
-#     actions   = ["s3:GetObject"]
-#     resources = ["${aws_s3_bucket.frontend.arn}/*"]
-
-#     principals {
-#       type        = "AWS"
-#       identifiers = [aws_cloudfront_origin_access_identity.frontend.iam_arn]
-#     }
-
-
-#     # condition {
-#     #   test     = "StringEquals"
-#     #   variable = "AWS:SourceArn"
-#     #   values   = [aws_cloudfront_distribution.frontend.arn]
-#     # }
-#   }
-
-#   statement {
-#     actions   = ["s3:ListBucket"]
-#     resources = [aws_s3_bucket.frontend.arn]
-#     principals {
-#       type        = "AWS"
-#       identifiers = [aws_cloudfront_origin_access_identity.frontend.iam_arn]
-#     }
-#   }
-# }
-
-# resource "aws_s3_bucket_policy" "frontend" {
-#   bucket = aws_s3_bucket.frontend.id
-#   policy = data.aws_iam_policy_document.s3_policy.json
-# }
 
 # GitHub Actions permission 
 data "aws_iam_policy_document" "github_actions" {
@@ -131,22 +101,25 @@ resource "aws_iam_access_key" "github_actions" {
 }
 
 resource "aws_iam_role_policy" "route53_permissions" {
-  name   = "${var.project_name}-route53-permissions"
-  role   = aws_iam_role.ec2_backend_role.id # Ou un autre rôle pertinent
-  policy = data.aws_iam_policy_document.route53_policy.json
+  name = "${var.project_name}-route53-permissions"
+  role = aws_iam_role.ec2_backend_role.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "route53:GetChange",
+          "route53:ListHostedZones",
+          "route53:ListHostedZonesByName",
+          "route53:ListResourceRecordSets",
+          "route53:ChangeResourceRecordSets"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
 }
 
 
-data "aws_iam_policy_document" "route53_policy" {
-  statement {
-    actions = [
-      "route53:ChangeResourceRecordSets",
-      "route53:ListHostedZones",
-      "route53:GetChange"
-    ]
 
-    resources = [
-      "arn:aws:route53:::hostedzone/${data.aws_route53_zone.main.id}"
-    ]
-  }
-}

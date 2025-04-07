@@ -1,5 +1,5 @@
 resource "aws_security_group" "backend_sg" {
-  name        = "traefik-sg"
+  name        = "backend-sg"
   description = "Security group for backend instance"
   vpc_id      = aws_vpc.main.id
 

@@ -5,10 +5,19 @@ resource "aws_instance" "backend" {
   iam_instance_profile = aws_iam_instance_profile.ec2_backend_profile.name
   security_groups      = [aws_security_group.backend_sg.id]
   subnet_id            = aws_subnet.public.id
+  depends_on           = [data.aws_route53_zone.main, aws_ssm_parameter.backend_secrets]
 
   provisioner "file" {
     source      = "docker-compose.yml"
     destination = "/tmp/docker-compose.yml"
+  }
+  provisioner "file" {
+    source      = "prometheus.yml"
+    destination = "/tmp/prometheus.yml"
+  }
+  provisioner "file" {
+    source      = "nginx.conf"
+    destination = "/tmp/nginx.conf"
   }
 
   connection {
@@ -34,7 +43,12 @@ resource "aws_instance" "backend" {
     resend_api_key               = aws_ssm_parameter.backend_secrets["resend_api_key"].name,
     resend_from_email            = aws_ssm_parameter.backend_secrets["resend_from_email"].name,
     allowed_origin               = aws_ssm_parameter.backend_secrets["allowed_origin"].name,
-    aws_region                   = var.aws_region
+    gf_security_admin_user       = aws_ssm_parameter.backend_secrets["gf_security_admin_user"].name,
+    gf_security_admin_password   = aws_ssm_parameter.backend_secrets["gf_security_admin_password"].name,
+    aws_access_key_id            = aws_ssm_parameter.backend_secrets["aws_access_key_id"].name,
+    aws_secret_access_key        = aws_ssm_parameter.backend_secrets["aws_secret_access_key"].name,
+    aws_region                   = var.aws_region,
+    aws_hosted_zone_id           = data.aws_route53_zone.main.zone_id
   })
 
   tags = {
