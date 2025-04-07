@@ -1,49 +1,36 @@
 services:
-  traefik:
-    image: traefik:v3.3
-    container_name: traefik
-    command:
-      - --api.insecure=true
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      # - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=anthonyrov@gmail.com
-      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.myresolver.acme.keytype=EC256
-      - --log.level=DEBUG
-      - --certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
-      - "443:443"
+      # - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /opt/traefik/letsencrypt:/letsencrypt
+      - /opt/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
-      - traefik_network
+      - backend_network
+    restart: unless-stopped
 
   portfolio-backend:
     image: hysteria9/portfolio-backend:latest
     container_name: portfolio-backend
     pull_policy: always
+    ports: []
     env_file:
-      - /home/ubuntu/app/.env
+      - .env
     environment:
       - NODE_ENV=production
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.backend.rule=Host(`api.anthonyrovira.com`)
-      - traefik.http.routers.backend.entrypoints=websecure
-      - traefik.http.routers.backend.tls.certresolver=myresolver
-      - traefik.http.services.backend.loadbalancer.server.port=3000
-      - com.centurylinklabs.watchtower.scope=traefik_network
+      - com.centurylinklabs.watchtower.scope=backend_network
       - com.centurylinklabs.watchtower.enable=true
     networks:
-      - traefik_network
+      - backend_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 3600s
+      timeout: 10s
+      retries: 3
 
   watchtower:
     image: containrrr/watchtower
@@ -55,10 +42,67 @@ services:
       - WATCHTOWER_POLL_INTERVAL=60
       - WATCHTOWER_LABEL_ENABLE=true
       - WATCHTOWER_REGISTRY_AUTH_FILE=/config.json
-    command: --scope traefik_network --cleanup --revive-stopped --debug
+    command: --scope backend_network --cleanup --revive-stopped --debug
     networks:
-      - traefik_network
+      - backend_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    ports: []
+    networks:
+      - backend_network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - .env
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+      - GF_SECURITY_DISABLE_INITIAL_ADMIN_PASSWORD_HINT=true
+      - GF_SERVER_PROTOCOL=http
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://grafana.api.anthonyrovira.com
+      - GF_SERVER_DOMAIN=grafana.api.anthonyrovira.com
+      - GF_SERVER_HTTP_PORT=3003
+    networks:
+      - backend_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - backend_network
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:
 
 networks:
-  traefik_network:
+  backend_network:
+    name: backend_network
     driver: bridge
