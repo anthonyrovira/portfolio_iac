@@ -37,6 +37,7 @@ resource "aws_iam_role_policy" "ssm_read_access" {
         Resource = [
           aws_ssm_parameter.dockerhub_username.arn,
           aws_ssm_parameter.dockerhub_password.arn,
+          aws_ssm_parameter.backend_secrets["api_internal"].arn,
           aws_ssm_parameter.backend_secrets["upstash_redis_rest_url"].arn,
           aws_ssm_parameter.backend_secrets["upstash_redis_rest_token"].arn,
           aws_ssm_parameter.backend_secrets["firebase_api_key"].arn,
@@ -98,27 +99,6 @@ resource "aws_iam_user_policy" "github_actions" {
 # Access Key for GitHub Actions
 resource "aws_iam_access_key" "github_actions" {
   user = aws_iam_user.github_actions.name
-}
-
-resource "aws_iam_role_policy" "route53_permissions" {
-  name = "${var.project_name}-route53-permissions"
-  role = aws_iam_role.ec2_backend_role.id
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "route53:GetChange",
-          "route53:ListHostedZones",
-          "route53:ListHostedZonesByName",
-          "route53:ListResourceRecordSets",
-          "route53:ChangeResourceRecordSets"
-        ],
-        "Resource" : "*"
-      }
-    ]
-  })
 }
 
 

@@ -55,7 +55,7 @@ resource "aws_route53_health_check" "api" {
   type              = "HTTPS"
   resource_path     = "/health"
   failure_threshold = "3"
-  request_interval  = "3600"
+  request_interval  = "30"
 
   tags = {
     Name = "api-health-check"

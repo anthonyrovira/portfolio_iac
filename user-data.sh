@@ -58,9 +58,9 @@ AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "${aws_access_key_id}" --with-d
 AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "${aws_secret_access_key}" --with-decryption --query "Parameter.Value" --region ${aws_region} --output text)
 AWS_REGION=${aws_region}
 AWS_HOSTED_ZONE_ID=${aws_hosted_zone_id}
-COMPOSE_PROJECT_NAME=portfolio
+API_INTERNAL=${api_internal}
 EOF
-sudo chmod 644 /opt/docker/.env
+sudo chmod 600 /opt/docker/.env
 
 # Copy yml files to ec2
 echo "--> Deploying configuration files"
@@ -73,6 +73,7 @@ echo "--> Starting services with Docker Compose"
 cd /opt/docker
 docker-compose up -d
 
+sudo chmod 600 /home/ubuntu/.docker/config.json
 echo "==> Script completed successfully!"
 echo "User data script completed at $(date)" > /var/log/user-data.log
 

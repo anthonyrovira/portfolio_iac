@@ -45,6 +45,7 @@ resource "aws_instance" "backend" {
     allowed_origin               = aws_ssm_parameter.backend_secrets["allowed_origin"].name,
     gf_security_admin_user       = aws_ssm_parameter.backend_secrets["gf_security_admin_user"].name,
     gf_security_admin_password   = aws_ssm_parameter.backend_secrets["gf_security_admin_password"].name,
+    api_internal                 = aws_ssm_parameter.backend_secrets["api_internal"].name,
     aws_access_key_id            = aws_ssm_parameter.backend_secrets["aws_access_key_id"].name,
     aws_secret_access_key        = aws_ssm_parameter.backend_secrets["aws_secret_access_key"].name,
     aws_region                   = var.aws_region,
